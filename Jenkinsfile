@@ -2,16 +2,16 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout Code') {
             steps {
-                checkout scm
+                git branch: 'main',
+                url: 'https://github.com/sohamgurav100/jenkins-ci-cd-demo.git'
             }
         }
 
-        stage('Build') {
+        stage('Build with Maven') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean install'
             }
         }
 
@@ -21,12 +21,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to Nginx') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    echo "Copying files to Nginx container..."
-                    sh 'docker cp index.html myjavaapp:/usr/share/nginx/html/'
-                }
+                sh 'docker build -t myjavaapp-image .'
+            }
+        }
+
+        stage('Deploy to Nginx Container') {
+            steps {
+                sh 'docker rm -f myjavaapp || true'
+                sh 'docker run -d -p 8081:80 --name myjavaapp nginx'
             }
         }
     }
