@@ -2,21 +2,31 @@ pipeline {
     agent any
 
     stages {
-        stage('Clone Repository') {
+
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/sohamgurav100/jenkins-ci-cd-demo.git'
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn clean package'
             }
         }
 
-        stage('Test') {
+        stage('Run Tests') {
             steps {
                 sh 'mvn test'
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                script {
+                    echo "Copying files to Nginx container..."
+                    sh 'docker cp index.html myjavaapp:/usr/share/nginx/html/'
+                }
             }
         }
     }
